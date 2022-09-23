@@ -68,4 +68,50 @@ router.delete("/delete/:id", async (req, res) => {
   }
 });
 
+router.put("/follow/:idUserFollowing/:idUserFollowed", async (req, res) => {
+  try {
+    const { idUserFollowing, idUserFollowed } = req.params;
+
+    const userFollowing = await UserModel.findByIdAndUpdate(
+      idUserFollowing,
+      {
+        $addToSet: { following: idUserFollowed },
+      },
+      { new: true }
+    );
+
+    const userFollowed = await UserModel.findByIdAndUpdate(idUserFollowed, {
+      $addToSet: { followers: idUserFollowing },
+    });
+
+    return res.status(200).json(userFollowing);
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json(error);
+  }
+});
+
+router.put("/unfollow/:idUserFollowing/:idUserFollowed", async (req, res) => {
+  try {
+    const { idUserUnfollowing, idUserUnfollowed } = req.params;
+
+    const userUnfollowing = await UserModel.findByIdAndUpdate(
+      idUserUnfollowing,
+      {
+        $pull: { following: idUserUnfollowed },
+      },
+      { new: true }
+    );
+
+    const userUnfollowed = await UserModel.findByIdAndUpdate(idUserUnfollowed, {
+      $pull: { followers: idUserUnfollowing },
+    });
+
+    return res.status(200).json(userUnfollowing);
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json(error);
+  }
+});
+
 module.exports = router;
