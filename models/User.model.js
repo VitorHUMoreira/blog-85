@@ -3,12 +3,12 @@ const Schema = mongoose.Schema;
 
 const UserSchema = new Schema(
   {
-    userName: { type: String, required: true },
+    username: { type: String, required: true },
     email: {
       type: String,
       required: true,
       unique: true,
-      match: /^[a-z0-9.]+@[a-z0-9]+\.[a-z]+\.([a-z]+)?$/i,
+      match: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
     },
     posts: [{ type: Schema.Types.ObjectId, ref: "Post" }],
   },
