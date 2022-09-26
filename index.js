@@ -3,13 +3,14 @@ const cors = require("cors");
 require("dotenv").config();
 const dbConnection = require("./config/db.config");
 dbConnection();
+const middleware = require("./middlewares/teste");
 
 const app = express();
 
 app.use(express.json());
 app.use(cors({ origin: process.env.REACT_APP_URI }));
+app.use(middleware);
 
-//ROTAS
 const UsersRoute = require("./routes/users.routes");
 app.use("/users", UsersRoute);
 
@@ -18,7 +19,6 @@ app.use("/posts", PostsRoute);
 
 const CommentsRoute = require("./routes/comments.routes");
 app.use("/comments", CommentsRoute);
-
 
 app.listen(+process.env.PORT, () => {
   console.log("Servidor funcionando na porta:", process.env.PORT);

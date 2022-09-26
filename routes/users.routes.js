@@ -1,20 +1,64 @@
 const express = require("express");
-const CommentModel = require("../models/Comment.model");
-const PostModel = require("../models/Post.model");
 const router = express.Router();
 
+const CommentModel = require("../models/Comment.model");
+const PostModel = require("../models/Post.model");
 const UserModel = require("../models/User.model");
+const bcrypt = require("bcrypt");
+const generateToken = require("../config/jwt.config");
+const saltRounds = 10;
 
-router.post("/create", async (req, res) => {
+router.post("sign-up", async (req, res) => {
+  const { password } = req.body;
+  if (!password || !password.match()) {
+    return res.status(400).json({ message: "Senha inválida!" });
+  }
+
+  const salt = await bcrypt.genSalt(saltRounds);
+  const passwordHash = await bcrypt.hash(password, salt);
+  const newUser = await UserModel.create({
+    ...req.body,
+    passwordHash: passwordHash,
+  });
+  delete newUser._doc.passwordHash;
+  return res.status(201).json(newUser);
+});
+
+router.post("/login", async (req, res) => {
   try {
-    const newUser = await UserModel.create({ ...req.body });
+    const { email, password } = req.body;
 
-    return res.status(201).json(newUser);
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Por favor, informe e-mail e senha!" });
+    }
+
+    const user = await UserModel.findOne({ email: email });
+
+    if (await bcrypt.compare(password, user.passwordHash)) {
+      delete user._doc.passwordHash;
+      const token = generateToken(user);
+      return res.status(200).json({ user: user, token: token });
+    } else {
+      return res.status(400).json({ message: "E-mail ou senha incorretos!" });
+    }
   } catch (error) {
     console.log(error);
     return res.status(400).json(error);
   }
 });
+
+// router.post("/create", async (req, res) => {
+//   try {
+//     const newUser = await UserModel.create({ ...req.body });
+
+//     return res.status(201).json(newUser);
+//   } catch (error) {
+//     console.log(error);
+//     return res.status(400).json(error);
+//   }
+// });
 
 router.get("/all", async (req, res) => {
   try {
