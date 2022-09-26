@@ -3,6 +3,7 @@ const router = express.Router();
 
 const UserModel = require("../models/User.model");
 const PostModel = require("../models/Post.model");
+const CommentModel = require("../models/Comment.model");
 
 router.post("/create/:idAuthor", async (req, res) => {
   try {
@@ -32,7 +33,7 @@ router.get("/post/:idPost", async (req, res) => {
     const post = await PostModel.findById(idPost)
       .populate("comments")
       .populate({
-        path: "Comments",
+        path: "comments",
         populate: {
           path: "author",
           model: "User",
@@ -52,30 +53,34 @@ router.put("/edit/:idPost", async (req, res) => {
 
     const editedPost = await PostModel.findByIdAndUpdate(
       idPost,
-      { ...req.body },
-      { new: true }
+      {
+        ...req.body,
+      },
+      { new: true, runValidators: true }
     );
 
-    return res.status(200).json(editedPost);
+    return res.status(200).json(editedPost)
   } catch (error) {
     console.log(error);
     return res.status(400).json(error);
   }
 });
 
-router.delete("delete/:idPost", async (req, res) => {
+router.delete("/delete/:idPost", async (req, res) => {
   try {
     const { idPost } = req.params;
 
     const deletedPost = await PostModel.findByIdAndDelete(idPost);
 
-    await PostModel.deleteMany({ post: idPost });
-
     await UserModel.findByIdAndUpdate(deletedPost.author, {
       $pull: { posts: idPost },
     });
 
-    return res.status(200).json(deletedPost);
+    await CommentModel.deleteMany({ post: idPost });
+
+    return res
+      .status(200)
+      .json("Post deleteado. Usuário atualizado. Comentários deletados");
   } catch (error) {
     console.log(error);
     return res.status(400).json(error);

@@ -3,9 +3,10 @@ const Schema = mongoose.Schema;
 
 const CommentSchema = new Schema(
   {
-    content: { type: String, required: true, minLength: 1, maxLength: 240 },
+    content: { type: String, required: true, minlength: 1, maxlength: 300 },
     author: { type: Schema.Types.ObjectId, ref: "User" },
     post: { type: Schema.Types.ObjectId, ref: "Post" },
+    likes: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

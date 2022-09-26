@@ -16,7 +16,9 @@ router.post("/create/:idPost/:idAuthor", async (req, res) => {
     });
 
     await PostModel.findByIdAndUpdate(idPost, {
-      $push: { comments: newComment._id },
+      $push: {
+        comments: newComment._id,
+      },
     });
 
     return res.status(201).json(newComment);
@@ -32,7 +34,9 @@ router.put("/edit/:idComment", async (req, res) => {
 
     const editedComment = await CommentModel.findByIdAndUpdate(
       idComment,
-      { ...req.body },
+      {
+        ...req.body,
+      },
       { new: true }
     );
 
@@ -52,12 +56,52 @@ router.delete("/delete/:idComment", async (req, res) => {
     await PostModel.findByIdAndUpdate(
       deletedComment.post,
       {
-        $pull: { comments: idComment },
+        $pull: {
+          comments: idComment,
+        },
       },
       { new: true }
     );
 
-    return res.status(200).json(deletedComment);
+    return res.status(200).json("comentário deletado :D");
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json(error);
+  }
+});
+
+router.put("/like/:idComment", async (req, res) => {
+  try {
+    const { idComment } = req.params;
+
+    const comment = await CommentModel.findByIdAndUpdate(
+      idComment,
+      {
+        $inc: { likes: 1 },
+      },
+      { new: true }
+    );
+
+    return res.status(200).json(comment);
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json(error);
+  }
+});
+
+router.put("/dislike/:idComment", async (req, res) => {
+  try {
+    const { idComment } = req.params;
+
+    const comment = await CommentModel.findByIdAndUpdate(
+      idComment,
+      {
+        $inc: { likes: -1 },
+      },
+      { new: true }
+    );
+
+    return res.status(200).json(comment);
   } catch (error) {
     console.log(error);
     return res.status(400).json(error);
